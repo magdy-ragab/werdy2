@@ -1,2 +1,2 @@
 ..\..\bin\ring quran.ring
-//cmd
+`cmd

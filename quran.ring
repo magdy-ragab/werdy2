@@ -1,6 +1,9 @@
 _title= "وردي"
 _version= "2.00"
 _i=0
+pagescount=3
+clean_only=0
+aya_block=1
 load "guilib.ring"
 load "func.ring"
 /*
@@ -23,81 +26,27 @@ app1 = new qapp{
 		setwindowtitle(_title+ " : الاصدار "+ _version)
 		setFixedWidth(400)
 		setFixedHeight(650)
-		setStyleSheet("background-color:#222222;color:#ffffff;padding:0; margin:0")
+		setStyleSheet("background-color:#FFFFFF;color:#222;background-image:url('img/islamic-star.png');")
 		//#757053
 		suraTab = new qwidget()
 		{
-			//setStyleSheet("background:transparent;")
-			//setWindowFlags(Qt_CustomizeWindowHint | Qt_WindowTitleHint | Qt_WindowStaysOnTopHint)
-			setStyleSheet(scollBarsStyle())
-			setContentsMargins(0,0,0,0)
-			
-			qtext= new QTextEdit(suraTab) 
-			{
-			
-				oFont = new qfont("",0,0,0)
-				oFont.setRawName("UthmanicHafs.ttf")
-				oFont.setPixelSize(20)
-				setfont(oFont)
-				setReadOnly(true)
-				setText(getPage(11)+getPage(12)+getPage(13))
-				setStyleSheet("background-image:url('img/islamic-star.png');background-color:#FFFFFF;color:#2b2817;")
-				
-			}
-			
-			
-			
-			layout2 = new qHBoxLayout() {
-				addwidget(qtext)
-			}
-			
-			suraTab.setLayout(layout2)
+			load 'suraTab.inc.ring'
 		}
 		
 		indexTab= new qwidget(){
-			table1 = new qTableWidget(indexTab) {
-				horizontalHeader().hide();
-				//verticalHeader().hide();
-				horizontalHeader().setStretchLastSection(true);
-				setrowcount(114)
-				setcolumncount(1)
-				setStyleSheet(scollBarsStyle())
-				for suraIndexLoop=1 to 114
-					v=(suraIndexLoop-1)
-					suraDataTable=suraIndex(suraIndexLoop)
-					if suraIndexLoop%2 bg='#fafff2' else bg='#f5f9e8'  ok
-					eval('suraTextEditIndex_txt_'+suraIndexLoop+' = new QTextEdit(indexTab){
-						sethtml("'+suraDataTable+'")
-						setReadOnly(true)
-						setdisabled(true)
-						setstylesheet("border:0px none; background-color: '+bg+';color:#000")
-						myfilter'+suraIndexLoop+' = new qallevents(suraTextEditIndex_txt_'+suraIndexLoop+')
-						myfilter'+suraIndexLoop+'.setMouseButtonDblClickEvent("goToPage('+suraIndexLoop+')")
-						installeventfilter(myfilter'+suraIndexLoop+')
-					}
-					setCellWidget('+v+',0, suraTextEditIndex_txt_'+suraIndexLoop+')')
-				next
-				setcellDoubleClickedEvent("seeTime()")
-				/*horizontalHeader().setStyleSheet("color: blue; font-weight:bold;height:300px")*/
-				verticalHeader().setDefaultSectionSize(50);
-			}
-			layout3= new qHBoxLayout() {
-				addwidget(table1)
-			}
-			
-			indexTab.setLayout(layout3)
+			load 'indexTab.inc.ring'
 		}
 		
 		bookMarksTab= new qwidget(){
-			new qlabel(bookMarksTab){settext("1")}
+			load 'bookmarksTab.inc.ring'
 		}
 		
 		settingsTab= new qwidget(){
-			new qlabel(bookMarksTab){settext("2")}
+			load 'settingsTab.inc.ring'
 		}
 		
 		helpTab= new qwidget(){
-			new qlabel(bookMarksTab){settext("3")}
+			load 'helpTab.inc.ring'
 		}
 		
 
@@ -258,3 +207,63 @@ func scollBarsStyle
 	"    subcontrol-position: top;"+
 	"    subcontrol-origin: margin;"+
 	"}"
+	
+	
+
+func pagesCount
+	query.exec("select * from user_data")
+	query.movenext()
+	pagesRead  =query.value(1).tostring()
+	return 1*pagesRead
+
+	
+func werdyTimers
+	query.exec("select * from user_data")
+	query.movenext()
+	werdHour  =query.value(2).tostring()
+	return 1*werdHour
+
+
+func getStartTime
+	query.exec("select * from user_data")
+	query.movenext()
+	r  =query.value(9).tostring()
+	return r
+
+func getEndTime
+	query.exec("select * from user_data")
+	query.movenext()
+	r  =query.value(10).tostring()
+	return r
+
+
+	
+func WerdContRead
+	q="update `user_data` set `snoozeTo`= '2000-12-31 00:00:00'"
+	query.exec( q)
+
+func settingsSubmitClicked
+	setNewPages   = spinnr.value()
+	setNewMinutes = spinner2.value()
+	clean_only = clean_label.ischecked()
+	aya_block = aya_block_check.ischecked()
+	//apptype= appTypeCombo.currentText()
+	
+	timeStart=readTimeCombo1.value()
+	timeEnd=readTimeCombo2.value()
+	
+	if(1*timeStart)>=(1*timeEnd)
+		dialogBoxOk("عفواً ساعة الإنتهاء يجب أن تكون أقل من ساعة البداية",win1)
+	else
+		if len( string(timeStart))= 1
+			timeStart="0"+timeStart
+		ok
+		
+		if len( string(timeEnd))= 1
+			timeEnd="0"+timeEnd
+		ok
+		
+		query.exec("update `user_data` set `pages`='"+setNewPages+"', `minutes`='"+ setNewMinutes +"', `clean`='"+ clean_only +"', `aya_block`='"+aya_block+"', `timeEnd`='"+timeStart+"' , `timeStart`='"+timeEnd+"'")
+		tab1.setCurrentIndex(0)
+	ok
+	see "<<RELOAD HERE>>>>"
